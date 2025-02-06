@@ -1,13 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <script src="index.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>ID3 뷰어 프로토타입</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <h1>MP3 메타데이터 파서</h1>
+  <input type="file" id="file-input" accept=".mp3">
+  <pre id="output"></pre>
+  <script type="module">
+    import init, { parse_mp3_metadata } from './pkg/wasm_test.js';
+
+    async function run() {
+      // WASM 모듈 초기화
+      await init();
+
+      const fileInput = document.getElementById('file-input');
+      const output = document.getElementById('output');
+
+      fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+          // 파일을 ArrayBuffer로 읽습니다.
+          const arrayBuffer = await file.arrayBuffer();
+          // ArrayBuffer를 Uint8Array로 변환합니다.
+          const uint8Array = new Uint8Array(arrayBuffer);
+
+          // WASM 모듈의 함수를 호출해 메타데이터를 파싱합니다.
+          const metadata = parse_mp3_metadata(uint8Array);
+
+          // 결과를 JSON 형식으로 출력합니다.
+          output.textContent = JSON.stringify(metadata, null, 2);
+        } catch (err) {
+          output.textContent = '에러: ' + err;
+        }
+      });
+    }
+
+    run();
+  </script>
+</body>
+
 </html>
